@@ -1,0 +1,52 @@
+{
+  "name": "diamond-nft-marketplace",
+  "version": "0.1.0",
+  "description": "NFT marketplace on the Diamond standard (EIP-2535): ERC-721/1155, sales, auctions, ERC-2981 royalties.",
+  "license": "MIT",
+  "private": true,
+  "author": "ZelendoRen",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZelendoRen/diamond-nft-marketplace.git"
+  },
+  "keywords": [
+    "solidity",
+    "hardhat",
+    "eip-2535",
+    "diamond",
+    "nft",
+    "erc721",
+    "erc1155",
+    "erc2981",
+    "marketplace",
+    "auction"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "coverage": "hardhat coverage",
+    "lint": "npm run lint:sol && npm run lint:ts && npm run format:check",
+    "lint:sol": "solhint \"contracts/**/*.sol\"",
+    "lint:ts": "eslint --no-error-on-unmatched-pattern \"{test,scripts}/**/*.ts\" hardhat.config.ts",
+    "format": "prettier --write \"**/*.{sol,ts,json,md,yml}\"",
+    "format:check": "prettier --check \"**/*.{sol,ts,json,md,yml}\"",
+    "clean": "hardhat clean"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@nomicfoundation/hardhat-toolbox": "^6.1.2",
+    "@types/node": "^26.6.5",
+    "dotenv": "^18.0.7",
+    "eslint": "^10.12.0",
+    "hardhat": "^2.29.1",
+    "prettier": "^3.9.10",
+    "prettier-plugin-solidity": "^2.4.1",
+    "solhint": "^6.2.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.71.2"
+  }
+}
