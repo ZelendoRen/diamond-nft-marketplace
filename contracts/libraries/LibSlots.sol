@@ -8,6 +8,9 @@ library LibSlots {
     // dnm.reentrancy
     bytes32 internal constant REENTRANCY =
         0x318e05e24333a7c820fa64907e53bb5ff7e1b877c5e103c093ac27d044774b00;
+    // dnm.payments
+    bytes32 internal constant PAYMENTS =
+        0xebac239808fedb6a314309f5d8162e37204df54c3985818df8c80ef098ff7a00;
     // dnm.erc721
     bytes32 internal constant ERC721 =
         0x8b3f4d3ffc5057ebed21a4e65b7e7ce82c734b8311d91f986ffcdb92f8cb6200;
