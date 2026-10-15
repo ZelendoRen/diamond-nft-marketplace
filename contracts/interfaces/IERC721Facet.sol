@@ -6,7 +6,6 @@ pragma solidity ^0.8.24;
 interface IERC721Facet {
     event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
     event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
-    // solhint-disable-next-line gas-indexed-events
     event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
 
     error ERC721InvalidOwner(address owner);

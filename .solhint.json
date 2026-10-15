@@ -6,6 +6,7 @@
     "no-inline-assembly": "off",
     "no-empty-blocks": "off",
     "use-natspec": "off",
+    "gas-indexed-events": "off",
     "gas-increment-by-one": "off",
     "max-line-length": ["warn", 100],
     "reason-string": ["warn", { "maxLength": 64 }]

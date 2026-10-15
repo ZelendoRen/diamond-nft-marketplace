@@ -18,7 +18,6 @@ interface IMarketplaceFacet {
         uint256 tokenId,
         uint256 price
     );
-    // solhint-disable-next-line gas-indexed-events
     event Withdrawal(address indexed account, uint256 amount);
 
     error PriceZero();
