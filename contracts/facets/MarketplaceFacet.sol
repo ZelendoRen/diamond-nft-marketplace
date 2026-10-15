@@ -3,10 +3,9 @@ pragma solidity ^0.8.24;
 
 import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import { IMarketplaceFacet } from "../interfaces/IMarketplaceFacet.sol";
-import { IRoyaltyFacet } from "../interfaces/IRoyaltyFacet.sol";
 import { LibMarketplace } from "../libraries/LibMarketplace.sol";
 import { LibPayments } from "../libraries/LibPayments.sol";
-import { LibRoyalty } from "../libraries/LibRoyalty.sol";
+import { LibSale } from "../libraries/LibSale.sol";
 import { NonReentrant } from "../utils/NonReentrant.sol";
 
 /// @notice Fixed-price sales of any ERC-721, paid in ETH.
@@ -65,7 +64,7 @@ contract MarketplaceFacet is IMarketplaceFacet, NonReentrant {
         // effects before the external call
         s.listings[listingId].active = false;
         delete s.activeListing[listing.nft][listing.tokenId];
-        _settle(listing.seller, listing.nft, listing.tokenId, listing.price);
+        LibSale.settle(listing.seller, listing.nft, listing.tokenId, listing.price);
 
         IERC721(listing.nft).safeTransferFrom(listing.seller, msg.sender, listing.tokenId);
         emit Sale(
@@ -105,15 +104,5 @@ contract MarketplaceFacet is IMarketplaceFacet, NonReentrant {
         return
             IERC721(nft).getApproved(tokenId) == address(this) ||
             IERC721(nft).isApprovedForAll(owner, address(this));
-    }
-
-    /// @dev Credits the royalty to its receiver and the rest to the seller.
-    function _settle(address seller, address nft, uint256 tokenId, uint256 price) private {
-        (address receiver, uint256 royalty) = LibRoyalty.quote(nft, tokenId, price);
-        if (royalty > 0) {
-            LibPayments.credit(receiver, royalty);
-            emit IRoyaltyFacet.RoyaltyPaid(nft, tokenId, receiver, royalty);
-        }
-        LibPayments.credit(seller, price - royalty);
     }
 }
