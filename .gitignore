@@ -16,3 +16,8 @@ dist/
 *.log
 .idea/
 .vscode/
+
+# Generated reports and local deployments
+gas-report.md
+deployments/localhost.json
+deployments/hardhat.json

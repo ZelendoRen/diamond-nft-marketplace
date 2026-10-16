@@ -2,6 +2,7 @@
 pragma solidity ^0.8.24;
 
 import { IDiamond } from "../interfaces/IDiamond.sol";
+import { IERC173 } from "../interfaces/IERC173.sol";
 
 error NotContractOwner(address user, address owner);
 error NoSelectorsInFacet(address facet);
@@ -42,10 +43,6 @@ library LibDiamond {
         address contractOwner;
     }
 
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-    // slither-disable-next-line unindexed-event-address
-    event DiamondCut(IDiamond.FacetCut[] diamondCut, address init, bytes initCalldata);
-
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
         bytes32 position = DIAMOND_STORAGE_POSITION;
         assembly {
@@ -57,7 +54,7 @@ library LibDiamond {
         DiamondStorage storage ds = diamondStorage();
         address previousOwner = ds.contractOwner;
         ds.contractOwner = newOwner;
-        emit OwnershipTransferred(previousOwner, newOwner);
+        emit IERC173.OwnershipTransferred(previousOwner, newOwner);
     }
 
     function contractOwner() internal view returns (address) {
@@ -85,7 +82,7 @@ library LibDiamond {
                 revert IncorrectFacetCutAction(uint8(cuts[i].action));
             }
         }
-        emit DiamondCut(cuts, init, initCalldata);
+        emit IDiamond.DiamondCut(cuts, init, initCalldata);
         initializeDiamondCut(init, initCalldata);
     }
 

@@ -8,7 +8,7 @@ import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 /// @dev A collection whose `transferFrom` first calls back into the diamond, the way a malicious
 ///      token would while the diamond is moving it.
 contract MockReentrantNFT is ERC721 {
-    address public target;
+    address public callTarget;
     bytes public payload;
     bool public bubble; // revert with the diamond's answer instead of swallowing it
     uint256 public attempts;
@@ -20,17 +20,17 @@ contract MockReentrantNFT is ERC721 {
         _mint(to, tokenId);
     }
 
-    function configure(address target_, bytes calldata payload_, bool bubble_) external {
-        target = target_;
+    function configure(address callTarget_, bytes calldata payload_, bool bubble_) external {
+        callTarget = callTarget_;
         payload = payload_;
         bubble = bubble_;
     }
 
     function transferFrom(address from, address to, uint256 tokenId) public override {
-        if (target != address(0)) {
+        if (callTarget != address(0)) {
             attempts++;
             // solhint-disable-next-line avoid-low-level-calls
-            (bool ok, bytes memory ret) = target.call(payload);
+            (bool ok, bytes memory ret) = callTarget.call(payload);
             if (!ok) {
                 lastError = ret;
                 if (bubble) {

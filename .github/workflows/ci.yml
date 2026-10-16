@@ -16,6 +16,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - run: npx hardhat compile
+      - run: npm run typecheck
 
   test:
     runs-on: ubuntu-latest
