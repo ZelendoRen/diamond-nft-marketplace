@@ -19,7 +19,7 @@ contract ERC721Facet is IERC721Facet {
     }
 
     function getApproved(uint256 tokenId) external view override returns (address) {
-        LibERC721.ownerOf(tokenId);
+        LibERC721.requireExists(tokenId);
         return LibERC721.layout().tokenApprovals[tokenId];
     }
 
@@ -43,7 +43,7 @@ contract ERC721Facet is IERC721Facet {
     }
 
     function tokenURI(uint256 tokenId) external view override returns (string memory) {
-        LibERC721.ownerOf(tokenId);
+        LibERC721.requireExists(tokenId);
         LibERC721.Layout storage s = LibERC721.layout();
         string memory uri = s.tokenURIs[tokenId];
         if (bytes(s.baseURI).length == 0) return uri;

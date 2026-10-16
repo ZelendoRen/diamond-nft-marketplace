@@ -8,6 +8,8 @@ import { LibPayments } from "../libraries/LibPayments.sol";
 import { LibSale } from "../libraries/LibSale.sol";
 import { NonReentrant } from "../utils/NonReentrant.sol";
 
+// ETH from bids stays in the diamond and is paid out by `MarketplaceFacet.withdraw`
+// slither-disable-start locked-ether
 /// @notice English auctions for any ERC-721, paid in ETH.
 /// @dev The diamond holds the token while the auction runs. An outbid bid is credited back and
 ///      collected with `MarketplaceFacet.withdraw`, so `bid` never sends ETH. Tokens leave with
@@ -47,6 +49,8 @@ contract AuctionFacet is IAuctionFacet, NonReentrant {
 
     function bid(uint256 auctionId) external payable nonReentrant {
         LibAuction.Auction storage auction = _auction(auctionId);
+        // auctions last at least an hour, so a few seconds of miner drift do not matter
+        // slither-disable-next-line timestamp
         if (auction.finished || block.timestamp >= auction.endTime) revert AuctionClosed(auctionId);
         if (msg.sender == auction.seller) revert SellerCannotBid();
         uint256 minimum = LibAuction.minimumBid(auction);
@@ -65,6 +69,7 @@ contract AuctionFacet is IAuctionFacet, NonReentrant {
     function settle(uint256 auctionId) external nonReentrant {
         LibAuction.Auction storage auction = _auction(auctionId);
         if (auction.finished) revert AuctionAlreadyFinished(auctionId);
+        // slither-disable-next-line timestamp
         if (block.timestamp < auction.endTime) revert AuctionNotEnded(auctionId);
         auction.finished = true;
 
@@ -108,3 +113,4 @@ contract AuctionFacet is IAuctionFacet, NonReentrant {
         if (auction.seller == address(0)) revert AuctionNotFound(auctionId);
     }
 }
+// slither-disable-end locked-ether

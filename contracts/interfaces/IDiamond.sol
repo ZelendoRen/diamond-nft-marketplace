@@ -14,5 +14,6 @@ interface IDiamond {
         bytes4[] functionSelectors;
     }
 
+    // slither-disable-next-line unindexed-event-address
     event DiamondCut(FacetCut[] diamondCut, address init, bytes initCalldata);
 }

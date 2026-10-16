@@ -32,6 +32,13 @@ library LibERC721 {
         if (owner == address(0)) revert IERC721Facet.ERC721NonexistentToken(tokenId);
     }
 
+    /// @dev Reverts unless the token exists.
+    function requireExists(uint256 tokenId) internal view {
+        if (layout().owners[tokenId] == address(0)) {
+            revert IERC721Facet.ERC721NonexistentToken(tokenId);
+        }
+    }
+
     function isApprovedOrOwner(
         address owner,
         address spender,

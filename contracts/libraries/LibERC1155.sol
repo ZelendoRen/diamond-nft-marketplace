@@ -72,30 +72,51 @@ library LibERC1155 {
         bytes memory data
     ) internal {
         if (to.code.length == 0) return;
-        bytes4 expected;
-        bytes4 answer;
-        if (ids.length == 1) {
-            expected = IERC1155Receiver.onERC1155Received.selector;
-            try
-                IERC1155Receiver(to).onERC1155Received(operator, from, ids[0], values[0], data)
-            returns (bytes4 retval) {
-                answer = retval;
-            } catch (bytes memory reason) {
-                _bubble(reason, to);
-            }
-        } else {
-            expected = IERC1155Receiver.onERC1155BatchReceived.selector;
-            try
-                IERC1155Receiver(to).onERC1155BatchReceived(operator, from, ids, values, data)
-            returns (bytes4 retval) {
-                answer = retval;
-            } catch (bytes memory reason) {
-                _bubble(reason, to);
-            }
-        }
+        bool single = ids.length == 1;
+        bytes4 expected =
+            single
+                ? IERC1155Receiver.onERC1155Received.selector
+                : IERC1155Receiver.onERC1155BatchReceived.selector;
+        bytes4 answer =
+            single
+                ? _callSingle(operator, from, to, ids[0], values[0], data)
+                : _callBatch(operator, from, to, ids, values, data);
         if (answer != expected) revert IERC1155Facet.ERC1155InvalidReceiver(to);
     }
 
+    function _callSingle(
+        address operator,
+        address from,
+        address to,
+        uint256 id,
+        uint256 value,
+        bytes memory data
+    ) private returns (bytes4) {
+        try IERC1155Receiver(to).onERC1155Received(operator, from, id, value, data) returns (
+            bytes4 answer
+        ) {
+            return answer;
+        } catch (bytes memory reason) {
+            _bubble(reason, to);
+        }
+    }
+
+    function _callBatch(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory values,
+        bytes memory data
+    ) private returns (bytes4) {
+        try IERC1155Receiver(to).onERC1155BatchReceived(operator, from, ids, values, data) returns (
+            bytes4 answer
+        ) {
+            return answer;
+        } catch (bytes memory reason) {
+            _bubble(reason, to);
+        }
+    }
     function _bubble(bytes memory reason, address receiver) private pure {
         if (reason.length == 0) revert IERC1155Facet.ERC1155InvalidReceiver(receiver);
         assembly {

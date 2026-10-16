@@ -1,0 +1,83 @@
+# Slither 0.11.6, run on commit 37c2590 (before the fixes below)
+# slither . --filter-paths "node_modules|contracts/mocks"
+
+Detector: arbitrary-send-eth
+MarketplaceFacet.withdraw() (contracts/facets/MarketplaceFacet.sol#81-88) sends eth to arbitrary user
+	Dangerous calls:
+	- (ok,None) = msg.sender.call{value: amount}() (contracts/facets/MarketplaceFacet.sol#85)
+Reference: 
+https://github.com/crytic/slither/wiki/Detector-Documentation#functions-that-send-ether-to-arbitrary-destinations
+
+Detector: locked-ether
+Contract locking ether found:
+	Contract AuctionFacet (contracts/facets/AuctionFacet.sol#15-110) has payable functions:
+	 - AuctionFacet.bid(uint256) (contracts/facets/AuctionFacet.sol#48-62)
+	But does not have a function to withdraw the ether
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#contracts-that-lock-ether
+
+Detector: uninitialized-local
+LibERC1155.checkOnReceived(address,address,address,uint256[],uint256[],bytes).answer 
+(contracts/libraries/LibERC1155.sol#76) is a local variable never initialized
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#uninitialized-local-variables
+
+Detector: unused-return
+ERC721Facet.getApproved(uint256) (contracts/facets/ERC721Facet.sol#21-24) ignores return value by 
+LibERC721.ownerOf(tokenId) (contracts/facets/ERC721Facet.sol#22)
+ERC721Facet.tokenURI(uint256) (contracts/facets/ERC721Facet.sol#45-52) ignores return value by 
+LibERC721.ownerOf(tokenId) (contracts/facets/ERC721Facet.sol#46)
+RoyaltyFacet.setTokenRoyalty(uint256,address,uint96) (contracts/facets/RoyaltyFacet.sol#36-42) ignores return value by 
+LibERC721.ownerOf(tokenId) (contracts/facets/RoyaltyFacet.sol#38)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unused-return
+
+Detector: timestamp
+AuctionFacet.bid(uint256) (contracts/facets/AuctionFacet.sol#48-62) uses timestamp for comparisons
+	Dangerous comparisons:
+	- auction.finished || block.timestamp >= auction.endTime (contracts/facets/AuctionFacet.sol#50)
+AuctionFacet.settle(uint256) (contracts/facets/AuctionFacet.sol#65-83) uses timestamp for comparisons
+	Dangerous comparisons:
+	- block.timestamp < auction.endTime (contracts/facets/AuctionFacet.sol#68)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#block-timestamp
+
+Detector: assembly
+Diamond.fallback() (contracts/Diamond.sol#24-42) uses assembly
+	- INLINE ASM (contracts/Diamond.sol#30-41)
+LibAuction.layout() (contracts/libraries/LibAuction.sol#28-33) uses assembly
+	- INLINE ASM (contracts/libraries/LibAuction.sol#30-32)
+LibDiamond.diamondStorage() (contracts/libraries/LibDiamond.sol#48-53) uses assembly
+	- INLINE ASM (contracts/libraries/LibDiamond.sol#50-52)
+LibDiamond.initializeDiamondCut(address,bytes) (contracts/libraries/LibDiamond.sol#181-195) uses assembly
+	- INLINE ASM (contracts/libraries/LibDiamond.sol#189-191)
+LibDiamond.enforceHasContractCode(address,string) (contracts/libraries/LibDiamond.sol#197-203) uses assembly
+	- INLINE ASM (contracts/libraries/LibDiamond.sol#199-201)
+LibERC1155.layout() (contracts/libraries/LibERC1155.sol#18-23) uses assembly
+	- INLINE ASM (contracts/libraries/LibERC1155.sol#20-22)
+LibERC1155._bubble(bytes,address) (contracts/libraries/LibERC1155.sol#99-104) uses assembly
+	- INLINE ASM (contracts/libraries/LibERC1155.sol#101-103)
+LibERC721.layout() (contracts/libraries/LibERC721.sol#23-28) uses assembly
+	- INLINE ASM (contracts/libraries/LibERC721.sol#25-27)
+LibERC721.checkOnReceived(address,address,uint256,bytes) (contracts/libraries/LibERC721.sol#94-113) uses assembly
+	- INLINE ASM (contracts/libraries/LibERC721.sol#109-111)
+LibMarketplace.layout() (contracts/libraries/LibMarketplace.sol#22-27) uses assembly
+	- INLINE ASM (contracts/libraries/LibMarketplace.sol#24-26)
+LibPayments.layout() (contracts/libraries/LibPayments.sol#13-18) uses assembly
+	- INLINE ASM (contracts/libraries/LibPayments.sol#15-17)
+LibReentrancyGuard.layout() (contracts/libraries/LibReentrancyGuard.sol#17-22) uses assembly
+	- INLINE ASM (contracts/libraries/LibReentrancyGuard.sol#19-21)
+LibRoyalty.layout() (contracts/libraries/LibRoyalty.sol#23-28) uses assembly
+	- INLINE ASM (contracts/libraries/LibRoyalty.sol#25-27)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#assembly-usage
+
+Detector: low-level-calls
+Low level call in MarketplaceFacet.withdraw() (contracts/facets/MarketplaceFacet.sol#81-88):
+	- (ok,None) = msg.sender.call{value: amount}() (contracts/facets/MarketplaceFacet.sol#85)
+Low level call in LibDiamond.initializeDiamondCut(address,bytes) (contracts/libraries/LibDiamond.sol#181-195):
+	- (success,error) = init.delegatecall(initCalldata) (contracts/libraries/LibDiamond.sol#185)
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#low-level-calls
+
+Detector: unindexed-event-address
+Event IDiamond.DiamondCut(IDiamond.FacetCut[],address,bytes) (contracts/interfaces/IDiamond.sol#17) has address 
+parameters but no indexed parameters
+Event LibDiamond.DiamondCut(IDiamond.FacetCut[],address,bytes) (contracts/libraries/LibDiamond.sol#46) has address 
+parameters but no indexed parameters
+Reference: https://github.com/crytic/slither/wiki/Detector-Documentation#unindexed-event-address-parameters
+. analyzed (76 contracts with 102 detectors), 25 result(s) found

@@ -43,6 +43,7 @@ library LibDiamond {
     }
 
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+    // slither-disable-next-line unindexed-event-address
     event DiamondCut(IDiamond.FacetCut[] diamondCut, address init, bytes initCalldata);
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
@@ -181,8 +182,10 @@ library LibDiamond {
     function initializeDiamondCut(address init, bytes memory initCalldata) internal {
         if (init == address(0)) return;
         enforceHasContractCode(init, "LibDiamond: init has no code");
+        // slither-disable-start low-level-calls
         // solhint-disable-next-line avoid-low-level-calls
         (bool success, bytes memory error) = init.delegatecall(initCalldata);
+        // slither-disable-end low-level-calls
         if (!success) {
             if (error.length > 0) {
                 // forward the initializer's revert data

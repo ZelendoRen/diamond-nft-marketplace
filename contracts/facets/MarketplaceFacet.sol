@@ -81,8 +81,11 @@ contract MarketplaceFacet is IMarketplaceFacet, NonReentrant {
     function withdraw() external nonReentrant {
         uint256 amount = LibPayments.take(msg.sender);
         if (amount == 0) revert NothingToWithdraw();
+        // pays the caller their own balance, which `take` has just zeroed
+        // slither-disable-start arbitrary-send-eth,low-level-calls
         // solhint-disable-next-line avoid-low-level-calls
         (bool ok, ) = msg.sender.call{ value: amount }("");
+        // slither-disable-end arbitrary-send-eth,low-level-calls
         if (!ok) revert WithdrawFailed();
         emit Withdrawal(msg.sender, amount);
     }

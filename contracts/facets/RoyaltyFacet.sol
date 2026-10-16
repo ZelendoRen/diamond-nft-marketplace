@@ -35,7 +35,7 @@ contract RoyaltyFacet is IRoyaltyFacet {
 
     function setTokenRoyalty(uint256 tokenId, address receiver, uint96 feeBps) external override {
         LibDiamond.enforceIsContractOwner();
-        LibERC721.ownerOf(tokenId); // reverts for a token that does not exist
+        LibERC721.requireExists(tokenId);
         _validate(receiver, feeBps);
         LibRoyalty.layout().tokenRoyalty[tokenId] = LibRoyalty.RoyaltyInfo(receiver, feeBps);
         emit TokenRoyaltySet(tokenId, receiver, feeBps);
