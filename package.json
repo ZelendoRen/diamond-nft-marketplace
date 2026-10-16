@@ -28,6 +28,7 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "coverage": "hardhat coverage",
+    "coverage:check": "ts-node scripts/check-coverage.ts 90",
     "lint": "npm run lint:sol && npm run lint:ts && npm run format:check",
     "lint:sol": "solhint \"contracts/**/*.sol\"",
     "lint:ts": "eslint --no-error-on-unmatched-pattern \"{test,scripts}/**/*.ts\" hardhat.config.ts",
