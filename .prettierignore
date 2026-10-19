@@ -4,3 +4,5 @@ cache
 typechain-types
 coverage
 package-lock.json
+# written by scripts/deploy.ts
+deployments

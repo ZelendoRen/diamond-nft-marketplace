@@ -1,0 +1,60 @@
+{
+  "network": "sepolia",
+  "chainId": 11155111,
+  "deployer": "0x05c76e4afe58dd8905C5d90ab38DdE89e30FD2f4",
+  "owner": "0x05c76e4afe58dd8905C5d90ab38DdE89e30FD2f4",
+  "blockNumber": 11949551,
+  "diamond": "0xE0085d0DcE07230Bf04575E9FB39912Ae4D6AF27",
+  "facets": {
+    "DiamondCutFacet": "0x238aEFcA7E7027D75FC106db874Ff3762Fb2C79E",
+    "DiamondLoupeFacet": "0x1E70789c2B88E7A81e0942bCEC45dB8f85483f17",
+    "OwnershipFacet": "0x7A744b45739ddee5a5250A934FEF38A3181A6b55",
+    "ERC721Facet": "0x7651B191317b0cC80fc2940565Aa8Fef62E282F9",
+    "RoyaltyFacet": "0xf9ba4FE975761a5858a3F0cf689b341f5F11A59a",
+    "ERC1155Facet": "0xD8449978881E21d1EC7351bAAa6D7f75725c4944",
+    "MarketplaceFacet": "0xD32D97cdA5A65d0F6586775B91645f3B075A51BC",
+    "AuctionFacet": "0x6638E2c1D7152F6283240667edD55f0f9368b701"
+  },
+  "initializers": {
+    "DiamondInit": "0xbF13DB180249953A72B3e7b6d5138b736BF8A83C",
+    "ERC721Init": "0x034C24e2d738Caa9e51C1aE0F2d5339b6c5E17F8",
+    "RoyaltyInit": "0xE7bd5939ea14994C7D4b0b08a382D4A410315969",
+    "ERC1155Init": "0xC343cBE31E5643C32F1f3a0C7A890373B00c088B"
+  },
+  "diamondConstructorArgs": [
+    [
+      {
+        "facetAddress": "0x238aEFcA7E7027D75FC106db874Ff3762Fb2C79E",
+        "action": 0,
+        "functionSelectors": [
+          "0x1f931c1c"
+        ]
+      },
+      {
+        "facetAddress": "0x1E70789c2B88E7A81e0942bCEC45dB8f85483f17",
+        "action": 0,
+        "functionSelectors": [
+          "0xcdffacc6",
+          "0x52ef6b2c",
+          "0xadfca15e",
+          "0x7a0ed627",
+          "0x01ffc9a7"
+        ]
+      },
+      {
+        "facetAddress": "0x7A744b45739ddee5a5250A934FEF38A3181A6b55",
+        "action": 0,
+        "functionSelectors": [
+          "0x8da5cb5b",
+          "0xf2fde38b"
+        ]
+      }
+    ],
+    {
+      "owner": "0x05c76e4afe58dd8905C5d90ab38DdE89e30FD2f4",
+      "init": "0xbF13DB180249953A72B3e7b6d5138b736BF8A83C",
+      "initCalldata": "0xe1c7392a"
+    }
+  ],
+  "upgrades": []
+}
