@@ -589,11 +589,97 @@ describe("AuctionFacet", () => {
       await a.connect(bob).bid(1, { value: START_PRICE });
       await time.increaseTo(await endOf(1, a));
       const withdraw = new ethers.Interface(["function withdraw()"]).encodeFunctionData("withdraw");
-      await evil.configure(diamond.target, withdraw, true);
+      await evil.configure(diamond.target, withdraw, false);
 
-      await expect(a.settle(1)).to.be.revertedWithCustomError(a, "ReentrantCall");
+      await a.settle(1);
 
-      expect((await a.getAuction(1)).finished).to.equal(false);
+      expect((await evil.lastError()).slice(0, 10)).to.equal(REENTRANT);
+      expect(await evil.ownerOf(1)).to.equal(bob.address);
+    });
+  });
+
+  describe("a token that cannot be delivered", () => {
+    async function withFailingNFT() {
+      const ctx = await auction();
+      const failing = await (await ethers.getContractFactory("MockFailingNFT")).deploy();
+      await failing.mint(ctx.alice.address, 1);
+      await failing.connect(ctx.alice).setApprovalForAll(ctx.diamond.target, true);
+      await ctx.auction.connect(ctx.alice).createAuction(failing.target, 1, START_PRICE, DAY);
+      await ctx.auction.connect(ctx.bob).bid(1, { value: START_PRICE });
+      await ctx.auction.connect(ctx.carol).bid(1, { value: bidAfter(START_PRICE) });
+      await time.increaseTo(await endOf(1, ctx.auction));
+      return { ...ctx, failing };
+    }
+
+    const failureModes: [string, number][] = [
+      ["reverts", 1],
+      ["burns all gas in transferFrom", 2],
+      ["pretends to transfer", 3],
+      ["burns all gas in ownerOf", 4],
+    ];
+
+    for (const [label, mode] of failureModes) {
+      describe(`when the collection ${label}`, () => {
+        async function failed() {
+          const ctx = await withFailingNFT();
+          await ctx.failing.setMode(mode);
+          return ctx;
+        }
+
+        it("still lets settle finish and emits AuctionDeliveryFailed", async () => {
+          const { auction: a, carol } = await loadFixture(failed);
+
+          await expect(a.settle(1, { gasLimit: 1_500_000 }))
+            .to.emit(a, "AuctionDeliveryFailed")
+            .withArgs(1, carol.address, bidAfter(START_PRICE));
+
+          expect((await a.getAuction(1)).finished).to.equal(true);
+        });
+
+        it("refunds the winning bid to the winner", async () => {
+          const { auction: a, market, carol } = await loadFixture(failed);
+
+          await a.settle(1, { gasLimit: 1_500_000 });
+
+          expect(await market.pendingWithdrawal(carol.address)).to.equal(bidAfter(START_PRICE));
+        });
+
+        it("pays the seller and the royalty receiver nothing", async () => {
+          const { auction: a, market, alice } = await loadFixture(failed);
+
+          await expect(a.settle(1, { gasLimit: 1_500_000 })).to.not.emit(a, "RoyaltyPaid");
+
+          expect(await market.pendingWithdrawal(alice.address)).to.equal(0);
+        });
+
+        it("keeps every outbid bidder's refund and lets all of them withdraw", async () => {
+          const { auction: a, market, bob, carol, diamond } = await loadFixture(failed);
+          await a.settle(1, { gasLimit: 1_500_000 });
+
+          await market.connect(bob).withdraw();
+          await market.connect(carol).withdraw();
+
+          expect(await ethers.provider.getBalance(diamond.target)).to.equal(0);
+        });
+
+        it("cannot be settled twice", async () => {
+          const { auction: a } = await loadFixture(failed);
+          await a.settle(1, { gasLimit: 1_500_000 });
+
+          await expect(a.settle(1)).to.be.revertedWithCustomError(a, "AuctionAlreadyFinished");
+        });
+      });
+    }
+
+    it("still completes a normal sale for the same collection while it works", async () => {
+      const { auction: a, market, failing, alice, carol } = await loadFixture(withFailingNFT);
+
+      await expect(a.settle(1))
+        .to.emit(a, "AuctionSettled")
+        .withArgs(1, carol.address, bidAfter(START_PRICE));
+
+      expect(await failing.ownerOf(1)).to.equal(carol.address);
+      expect(await market.pendingWithdrawal(alice.address)).to.equal(bidAfter(START_PRICE));
     });
   });
 });

@@ -13,6 +13,12 @@ interface IAuctionFacet {
     event BidPlaced(uint256 indexed auctionId, address indexed bidder, uint256 amount);
     event AuctionSettled(uint256 indexed auctionId, address indexed winner, uint256 amount);
     event AuctionUnsold(uint256 indexed auctionId);
+    /// @dev The token could not be handed to the winner, whose bid was credited back.
+    event AuctionDeliveryFailed(
+        uint256 indexed auctionId,
+        address indexed winner,
+        uint256 refunded
+    );
     event AuctionCancelled(uint256 indexed auctionId);
 
     error StartingPriceZero();

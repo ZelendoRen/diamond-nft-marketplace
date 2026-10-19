@@ -13,8 +13,12 @@ import { NonReentrant } from "../utils/NonReentrant.sol";
 /// @notice English auctions for any ERC-721, paid in ETH.
 /// @dev The diamond holds the token while the auction runs. An outbid bid is credited back and
 ///      collected with `MarketplaceFacet.withdraw`, so `bid` never sends ETH. Tokens leave with
-///      `transferFrom` (no receiver callback), so a contract winner cannot block `settle`.
+///      `transferFrom` (no receiver callback), so a contract winner cannot block `settle`. If the
+///      token cannot be delivered to the winner, the winner gets the bid back.
 contract AuctionFacet is IAuctionFacet, NonReentrant {
+    // gas given to the collection to hand the token to the winner
+    uint256 private constant DELIVERY_GAS = 500_000;
+
     function createAuction(
         address nft,
         uint256 tokenId,
@@ -77,16 +81,18 @@ contract AuctionFacet is IAuctionFacet, NonReentrant {
             IERC721(auction.nft).transferFrom(address(this), auction.seller, auction.tokenId);
             emit AuctionUnsold(auctionId);
         } else {
-            LibSale.settle(auction.seller, auction.nft, auction.tokenId, auction.highestBid);
-            IERC721(auction.nft).transferFrom(
-                address(this),
-                auction.highestBidder,
-                auction.tokenId
-            );
-            emit AuctionSettled(auctionId, auction.highestBidder, auction.highestBid);
+            // The seller is paid only if the token really reaches the winner. A collection that
+            // refuses the transfer, or does not move the token, must not lock the winning bid, so
+            // the bid is refunded instead.
+            if (_deliver(auction.nft, auction.highestBidder, auction.tokenId)) {
+                LibSale.settle(auction.seller, auction.nft, auction.tokenId, auction.highestBid);
+                emit AuctionSettled(auctionId, auction.highestBidder, auction.highestBid);
+            } else {
+                LibPayments.credit(auction.highestBidder, auction.highestBid);
+                emit AuctionDeliveryFailed(auctionId, auction.highestBidder, auction.highestBid);
+            }
         }
     }
-
     /// @notice Cancels an auction that has no bids and returns the token to the seller.
     function cancelAuction(uint256 auctionId) external nonReentrant {
         LibAuction.Auction storage auction = _auction(auctionId);
@@ -108,6 +114,18 @@ contract AuctionFacet is IAuctionFacet, NonReentrant {
         return LibAuction.minimumBid(_auction(auctionId));
     }
 
+    /// @dev Hands the token to `to` and checks that it arrived. Never reverts.
+    function _deliver(address nft, address to, uint256 tokenId) private returns (bool) {
+        try IERC721(nft).transferFrom{ gas: DELIVERY_GAS }(address(this), to, tokenId) {
+            try IERC721(nft).ownerOf{ gas: DELIVERY_GAS }(tokenId) returns (address owner) {
+                return owner == to;
+            } catch {
+                return false;
+            }
+        } catch {
+            return false;
+        }
+    }
     function _auction(uint256 auctionId) private view returns (LibAuction.Auction storage auction) {
         auction = LibAuction.layout().auctions[auctionId];
         if (auction.seller == address(0)) revert AuctionNotFound(auctionId);
